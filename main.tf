@@ -117,7 +117,7 @@ resource "azurerm_monitor_diagnostic_setting" "webapp_diag" {
 resource "azurerm_monitor_metric_alert" "app_down" {
   name                = "alert-${azurerm_linux_web_app.app.name}-down"
   resource_group_name = azurerm_resource_group.rg.name
-  scopes              = [azurerm_linux_web_app.app.id, azurerm_linux_web_app_slot.dev.id]
+  scopes              = [azurerm_linux_web_app.app.id]
   description         = "Web App is down"
   severity            = 2
   frequency           = "PT1M"
