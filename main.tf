@@ -20,6 +20,16 @@ provider "azurerm" {
   # subscription_id = var.subscription_id
 }
 
+# Log Analytics Workspace for monitoring
+resource "azurerm_log_analytics_workspace" "monitor" {
+  name                = "law-${var.project}-${var.env}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+  tags                = var.tags
+}
+
 # ----- Infra -----
 
 resource "azurerm_resource_group" "rg" {
@@ -69,5 +79,72 @@ resource "azurerm_linux_web_app" "app" {
     ignore_changes = [
       app_settings["WEBSITE_RUN_FROM_PACKAGE"]
     ]
+  }
+}
+
+# Azure Monitor Action Group for email notifications
+resource "azurerm_monitor_action_group" "email_alerts" {
+  name                = "ag-${var.project}-${var.env}-email"
+  resource_group_name = azurerm_resource_group.rg.name
+  short_name          = "EmailAG"
+
+  email_receiver {
+    name                    = "AppAdmin"
+    email_address           = var.alert_email # Add this variable to variables.tf
+    use_common_alert_schema = true
+  }
+}
+
+# Diagnostic settings to send logs/metrics to Log Analytics
+resource "azurerm_monitor_diagnostic_setting" "webapp_diag" {
+  name                       = "diag-${azurerm_linux_web_app.app.name}"
+  target_resource_id         = azurerm_linux_web_app.app.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.monitor.id
+
+  enabled_log {
+    category = "AppServiceAppLogs"
+  }
+  enabled_log {
+    category = "AppServiceAuditLogs"
+  }
+  metric {
+    category = "AllMetrics"
+    enabled  = true
+  }
+}
+
+# Alert when the app is down (HTTP 5xx errors)
+resource "azurerm_monitor_metric_alert" "app_down" {
+  name                = "alert-${azurerm_linux_web_app.app.name}-down"
+  resource_group_name = azurerm_resource_group.rg.name
+  scopes              = [azurerm_linux_web_app.app.id]
+  description         = "Web App is down"
+  severity            = 2
+  frequency           = "PT1M"
+  window_size         = "PT5M"
+  criteria {
+    metric_namespace = "Microsoft.Web/sites"
+    metric_name      = "Http5xx"
+    aggregation      = "Total"
+    operator         = "GreaterThan"
+    threshold        = 1
+  }
+  action {
+    action_group_id = azurerm_monitor_action_group.email_alerts.id
+  }
+}
+
+# Alert when the app is restarted
+resource "azurerm_monitor_activity_log_alert" "app_restarted" {
+  name                = "alert-${azurerm_linux_web_app.app.name}-restarted"
+  resource_group_name = azurerm_resource_group.rg.name
+  scopes              = [azurerm_resource_group.rg.id]
+  description         = "Web App was restarted"
+  criteria {
+    category       = "Administrative"
+    operation_name = "Microsoft.Web/sites/restart/action"
+  }
+  action {
+    action_group_id = azurerm_monitor_action_group.email_alerts.id
   }
 }

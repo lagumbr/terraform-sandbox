@@ -1,3 +1,8 @@
+variable "alert_email" {
+  description = "Email address to receive Azure Monitor alerts."
+  type        = string
+}
+
 variable "subscription_id" {
   description = "Optional: force a specific subscription (otherwise uses Azure CLI logged-in context)"
   type        = string
