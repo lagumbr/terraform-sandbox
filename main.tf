@@ -82,25 +82,6 @@ resource "azurerm_linux_web_app" "app" {
   }
 }
 
-  # Deployment slot 'dev' for the web app
-  resource "azurerm_linux_web_app_slot" "dev" {
-    name           = "dev"
-    app_service_id = azurerm_linux_web_app.app.id
-    tags           = var.tags
-
-    site_config {
-      always_on = false
-      application_stack {
-        node_version = "18-lts"
-      }
-    }
-
-    app_settings = {
-      "WEBSITE_RUN_FROM_PACKAGE"       = "0"
-      "SCM_DO_BUILD_DURING_DEPLOYMENT" = "0"
-    }
-  }
-
 # Azure Monitor Action Group for email notifications
 resource "azurerm_monitor_action_group" "email_alerts" {
   name                = "ag-${var.project}-${var.env}-email"
