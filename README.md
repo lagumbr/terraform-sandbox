@@ -1,3 +1,20 @@
+# GitHub Actions Deployment
+
+This project uses GitHub Actions to deploy the Node.js app to Azure App Service automatically:
+
+1. On every push to the configured branch, GitHub Actions runs the workflow in `.github/workflows/`.
+2. The workflow checks out your code, installs dependencies, builds (if needed), and deploys to Azure using the `azure/webapps-deploy` action.
+3. The deployment uses the publish profile secret (`AZUREAPPSERVICE_PUBLISHPROFILE`) for authentication.
+4. To deploy the app in the `src` folder, set `package: src` in the workflow file.
+
+
+**The set up:**
+1. In Azure Portal, go to your App Service and open Deployment Center.
+2. Connect your App Service to your GitHub repository and branch.
+3. Azure automatically creates the workflow YAML file in your repo.
+4. Now, every commit and push to the configured branch will automatically deploy changes to Azure App Service.
+
+Refer to the workflow file for details and update as needed for your app structure.
 # Terraform Azure Web App Sandbox
 
 This project provisions an Azure Linux Web App with monitoring and alerting using Terraform.
