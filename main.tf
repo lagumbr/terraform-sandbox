@@ -3,8 +3,7 @@ terraform {
   required_providers {
     azurerm = {
       source = "hashicorp/azurerm"
-      # Pin broadly to v3; adjust as you like
-      version = "~> 3.0"
+      version = "4.42.0"
     }
     random = {
       source  = "hashicorp/random"
@@ -14,6 +13,7 @@ terraform {
 }
 
 provider "azurerm" {
+  subscription_id = var.subscription_id
   features {}
   # When you're logged in with `az login`, no extra auth needed.
   # To force a subscription, uncomment:
@@ -107,9 +107,8 @@ resource "azurerm_monitor_diagnostic_setting" "webapp_diag" {
   enabled_log {
     category = "AppServiceAuditLogs"
   }
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 
@@ -140,6 +139,7 @@ resource "azurerm_monitor_activity_log_alert" "app_restarted" {
   resource_group_name = azurerm_resource_group.rg.name
   scopes              = [azurerm_resource_group.rg.id]
   description         = "Web App was restarted"
+  location            = "global"
   criteria {
     category       = "Administrative"
     operation_name = "Microsoft.Web/sites/restart/action"

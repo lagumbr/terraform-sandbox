@@ -6,7 +6,7 @@ variable "alert_email" {
 variable "subscription_id" {
   description = "Optional: force a specific subscription (otherwise uses Azure CLI logged-in context)"
   type        = string
-  default     = null
+  default     = "338831ea-da6f-42c7-98ad-8316e341a53c"
 }
 
 variable "project" {
@@ -31,7 +31,7 @@ variable "location" {
 variable "appservice_sku" {
   type        = string
   # B1 is a low-cost paid plan. F1 (Free) is very limited and not always available for Linux.
-  default     = "B1"
+  default     = "F1"
   description = "App Service Plan SKU (e.g., B1, S1, P1v3)"
 }
 

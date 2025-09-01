@@ -1,3 +1,12 @@
+# How to get your Azure Subscription ID
+
+Run this command in your terminal:
+
+```pwsh
+az account show --query id --output tsv
+```
+
+This will print your current Azure subscription ID, which you can use in your Terraform configuration.
 # GitHub Actions Deployment
 
 This project uses GitHub Actions to deploy the Node.js app to Azure App Service automatically:
