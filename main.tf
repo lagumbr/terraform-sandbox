@@ -3,7 +3,7 @@ terraform {
   required_providers {
     azurerm = {
       source = "hashicorp/azurerm"
-      version = "4.42.0"
+      version = "4.51.0"
     }
     random = {
       source  = "hashicorp/random"
@@ -147,4 +147,35 @@ resource "azurerm_monitor_activity_log_alert" "app_restarted" {
   action {
     action_group_id = azurerm_monitor_action_group.email_alerts.id
   }
+}
+
+# --------------------------
+# Azure Managed Redis (Balanced_B0)
+# --------------------------
+
+resource "azurerm_managed_redis" "redis" {
+  name                = "redis-${var.project}-${var.env}"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+
+  sku_name = "Balanced_B0" # Small, cost-effective tier for dev/test or lightweight workloads
+
+  # default_database {
+  #   geo_replication_group_name = "defaultGeoGroup-${var.env}"
+  # }
+
+  tags = var.tags
+}
+
+output "redis_hostname" {
+  value = azurerm_managed_redis.redis.hostname
+}
+
+# Redis port is typically 6380 for SSL, which is the default for Azure Redis.
+output "redis_port" {
+  value = 6380
+}
+
+output "redis_id" {
+  value = azurerm_managed_redis.redis.id
 }
