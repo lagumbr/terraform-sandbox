@@ -3,7 +3,7 @@ terraform {
   required_providers {
     azurerm = {
       source = "hashicorp/azurerm"
-      version = "4.51.0"
+      version = "4.54.0"
     }
     random = {
       source  = "hashicorp/random"
@@ -153,22 +153,33 @@ resource "azurerm_monitor_activity_log_alert" "app_restarted" {
 # Azure Managed Redis (Balanced_B0)
 # --------------------------
 
-resource "azurerm_managed_redis" "redis" {
-  name                = "redis-${var.project}-${var.env}"
+resource "azurerm_managed_redis" "redis_nonprd" {
+  name                = "redis-${var.project}-${var.env}2"  # target: redis-aklc-cxp-spa-nonprd-ae-01
+  location            = var.location                                                 # ensure "Australia East"
   resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  sku_name            = "Balanced_B0"          # from ARM
+  default_database {
+    access_keys_authentication_enabled = true  
+    module {
+      name = "RedisJSON"
+    }
+  }
 
-  sku_name = "Balanced_B0" # Small, cost-effective tier for dev/test or lightweight workloads
 
-  # default_database {
-  #   geo_replication_group_name = "defaultGeoGroup-${var.env}"
+  # Optional advanced settings – uncomment if supported/needed:
+  # patch_schedule {
+  #   day_of_week = "Sunday"
+  #   start_hour_utc = 3
   # }
-
-  tags = var.tags
+  # persistence {
+  #   aof_enabled = false
+  #   rdb_enabled = false
+  # }
+  #module { name = "RedisJSON" }    # If provider exposes modules for Managed Redis
 }
 
 output "redis_hostname" {
-  value = azurerm_managed_redis.redis.hostname
+  value = azurerm_managed_redis.redis_nonprd.hostname
 }
 
 # Redis port is typically 6380 for SSL, which is the default for Azure Redis.
@@ -177,5 +188,5 @@ output "redis_port" {
 }
 
 output "redis_id" {
-  value = azurerm_managed_redis.redis.id
+  value = azurerm_managed_redis.redis_nonprd.id
 }
